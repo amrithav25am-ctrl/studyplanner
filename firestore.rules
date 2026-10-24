@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profile
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner(userId) &&
+        incoming().userId == request.auth.uid &&
+        incoming().displayName is string && incoming().displayName.size() <= 100;
+      allow delete: if isOwner(userId);
+
+      // User tasks
+      match /tasks/{taskId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          incoming().userId == request.auth.uid &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow update: if isOwner(userId) &&
+          incoming().userId == request.auth.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      // User timetable
+      match /timetable/{entryId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          incoming().userId == request.auth.uid &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow update: if isOwner(userId) &&
+          incoming().userId == request.auth.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      // User notes
+      match /notes/{noteId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          incoming().userId == request.auth.uid &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow update: if isOwner(userId) &&
+          incoming().userId == request.auth.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      // Study sessions
+      match /sessions/{sessionId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          incoming().userId == request.auth.uid &&
+          incoming().durationMinutes is number;
+        allow update, delete: if isOwner(userId);
+      }
+    }
+
+    // Collaborative Study Rooms
+    match /studyRooms/{roomId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() &&
+        incoming().creatorId == request.auth.uid &&
+        incoming().name is string && incoming().name.size() <= 150;
+      allow update: if isSignedIn() && (
+        existing().creatorId == request.auth.uid ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['updatedAt'])
+      );
+      allow delete: if isSignedIn() && existing().creatorId == request.auth.uid;
+
+      // Active presence & focus state of room members
+      match /members/{memberId} {
+        allow get, list: if isSignedIn();
+        allow create, update: if isSignedIn() &&
+          memberId == request.auth.uid &&
+          incoming().userId == request.auth.uid;
+        allow delete: if isSignedIn() && memberId == request.auth.uid;
+      }
+
+      // Room Discussion Forum & Chat Messages
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() &&
+          incoming().userId == request.auth.uid &&
+          incoming().roomId == roomId &&
+          incoming().content is string && incoming().content.size() <= 3000;
+        allow delete: if isSignedIn() && (
+          existing().userId == request.auth.uid ||
+          get(/databases/$(database)/documents/studyRooms/$(roomId)).data.creatorId == request.auth.uid
+        );
+      }
+    }
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with study statistics and streak data",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "streakCount": { "type": "number" },
+        "lastActiveDate": { "type": "string", "maxLength": 20 },
+        "totalFocusMinutes": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "displayName"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Student assignment, exam prep, or study task",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "dueDate": { "type": "string", "maxLength": 50 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "estimatedMinutes": { "type": "number" },
+        "status": { "type": "string", "enum": ["todo", "in_progress", "completed"] },
+        "completedAt": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "title", "subject", "dueDate", "priority", "status"]
+    },
+    "TimetableEntry": {
+      "title": "TimetableEntry",
+      "description": "Weekly recurring class or study block timetable entry",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "dayOfWeek": { "type": "number" },
+        "subject": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "startTime": { "type": "string", "maxLength": 10 },
+        "endTime": { "type": "string", "maxLength": 10 },
+        "location": { "type": "string", "maxLength": 100 },
+        "color": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "dayOfWeek", "subject", "title", "startTime", "endTime"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Integrated cloud note for coursework and study summaries",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 20000 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "tags": { "type": "array" },
+        "isPinned": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "title", "content", "subject"]
+    },
+    "StudySession": {
+      "title": "StudySession",
+      "description": "Logged focus / Pomodoro study session record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string", "maxLength": 100 },
+        "taskTitle": { "type": "string", "maxLength": 200 },
+        "durationMinutes": { "type": "number" },
+        "sessionDate": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "subject", "durationMinutes", "sessionDate"]
+    },
+    "StudyRoom": {
+      "title": "StudyRoom",
+      "description": "Collaborative virtual study room for group study",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 20 },
+        "name": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string", "maxLength": 100 },
+        "isPrivate": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["code", "name", "subject", "creatorId", "creatorName"]
+    },
+    "RoomMember": {
+      "title": "RoomMember",
+      "description": "Live presence and current focus state of a study room member",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "currentTask": { "type": "string", "maxLength": 200 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "isStudying": { "type": "boolean" },
+        "pomodoroSeconds": { "type": "number" },
+        "pomodoroMode": { "type": "string", "enum": ["work", "break"] },
+        "lastHeartbeat": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["userId", "displayName"]
+    },
+    "RoomMessage": {
+      "title": "RoomMessage",
+      "description": "Discussion message in a study room forum",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userAvatar": { "type": "string", "maxLength": 500 },
+        "content": { "type": "string", "maxLength": 3000 },
+        "category": { "type": "string", "enum": ["general", "question", "resource", "cheer"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["roomId", "userId", "userName", "content", "category"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and streak/progress stats"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Student task and assignment records"
+    },
+    "/users/{userId}/timetable/{entryId}": {
+      "schema": "TimetableEntry",
+      "description": "Student weekly schedule entries"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Student notes synced to cloud"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "StudySession",
+      "description": "Logged focus time sessions for streak and analytics"
+    },
+    "/studyRooms/{roomId}": {
+      "schema": "StudyRoom",
+      "description": "Public or shared collaborative study rooms"
+    },
+    "/studyRooms/{roomId}/members/{memberId}": {
+      "schema": "RoomMember",
+      "description": "Active participants in the study room"
+    },
+    "/studyRooms/{roomId}/messages/{messageId}": {
+      "schema": "RoomMessage",
+      "description": "Discussion forum and chat messages for study room"
+    }
+  }
+}

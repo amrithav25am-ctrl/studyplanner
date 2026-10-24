@@ -1,0 +1,6 @@
+{
+  "name": "FocusFlow",
+  "description": "Student productivity and study planner with timetables, Pomodoro focus timer, deadline-driven scheduling, cloud notes, and collaborative study rooms.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
